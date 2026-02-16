@@ -35,10 +35,8 @@ jobs:
         run: |
           if [ -f output.txt ] && grep -q "ALERT:" output.txt; then
             echo "alert=true" >> "$GITHUB_OUTPUT"
-            echo "ALERT detected"
           else
             echo "alert=false" >> "$GITHUB_OUTPUT"
-            echo "No alert"
           fi
 
       - name: Send email via Gmail
@@ -68,9 +66,3 @@ jobs:
 
           print("Email sent")
           EOF
-
-      - name: Log alert line (debug)
-        if: steps.detect_alert.outputs.alert == 'true'
-        run: |
-          echo "👉 Price drop detected — tracker printed ALERT:"
-          grep -n "ALERT:" output.txt || true
