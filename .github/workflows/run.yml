@@ -1,13 +1,14 @@
 name: Flight Price Tracker
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
   schedule:
-    - cron: "15 21 * * *" # Daily ~08:15 Sydney time during AEDT (cron is UTC)
+    - cron: "15 21 * * *"   # Runs daily (Sydney morning)
 
 jobs:
   run:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,38 +22,28 @@ jobs:
         id: run_tracker
         env:
           ROUTE: "SYD-DXB"
-          THRESHOLD_AUD: "9999"
+          THRESHOLD_AUD: "1200"
         run: |
           python tracker.py | tee output.txt
 
       - name: Detect alert
         id: detect_alert
         run: |
-          if [ -f output.txt ] && grep -q "ALERT:" output.txt; then
+          if grep -q "ALERT:" output.txt; then
             echo "alert=true" >> "$GITHUB_OUTPUT"
-            echo "ALERT detected"
           else
             echo "alert=false" >> "$GITHUB_OUTPUT"
-            echo "No alert"
           fi
 
-- name: Email alert
-  if: steps.detect_alert.outputs.alert == 'true'
-  uses: dawidd6/action-send-mail@v3
-  with:
-    server_address: smtp.gmail.com
-    server_port: 465
-    secure: true
-    username: ${{ secrets.SMTP_USERNAME }}
-    password: ${{ secrets.SMTP_PASSWORD }}
-    subject: "✈️ Flight Price Alert: ${{ env.ROUTE }}"
-    to: ${{ secrets.ALERT_TO_EMAIL }}
-    from: "Flight Price Tracker <${{ secrets.SMTP_USERNAME }}>"
-    body: |
-      ALERT detected for route: ${{ env.ROUTE }}
-      Threshold: ${{ env.THRESHOLD_AUD }} AUD
-
-      Workflow: ${{ github.workflow }}
-      Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-
+      - name: Send Email (only if alert)
+        if: steps.detect_alert.outputs.alert == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Flight Price Drop Detected ✈️"
+          body: "SYD–DXB price dropped below threshold. Go book it."
+          to: your@email.com
+          from: Flight Tracker
