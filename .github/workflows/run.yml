@@ -1,3 +1,20 @@
+      - name: Run tracker
+        id: run_tracker
+        env:
+          ROUTE: "SYD-DXB"
+          THRESHOLD_AUD: "1200"
+        run: |
+          python tracker.py | tee output.txt
+
+      - name: Notify (placeholder) on alert
+        if: always()
+        run: |
+          if grep -q "ALERT:" output.txt; then
+            echo "ALERT found - wire notification here"
+            exit 1
+          else
+            echo "No alert"
+          fi
 name: Flight Price Tracker
 
 on:
