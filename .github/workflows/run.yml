@@ -1,3 +1,46 @@
+name: Flight Price Tracker
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "15 21 * * *"   # Runs daily ~08:15 Sydney time (AEDT)
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run tracker
+        id: run_tracker
+        env:
+          ROUTE: "SYD-DXB"
+          THRESHOLD_AUD: "1200"
+        run: |
+          python tracker.py | tee output.txt
+
+      - name: Detect alert
+        id: detect_alert
+        run: |
+          if [ -f output.txt ] && grep -q "ALERT:" output.txt; then
+            echo "alert=true" >> "$GITHUB_OUTPUT"
+            echo "ALERT detected"
+          else
+            echo "alert=false" >> "$GITHUB_OUTPUT"
+            echo "No alert"
+          fi
+
+      - name: Notification placeholder
+        if: steps.detect_alert.outputs.alert == 'true'
+        run: |
+          echo "👉 Price drop detected — plug notification here"
       - name: Run tracker
         id: run_tracker
         env:
