@@ -1,1 +1,41 @@
+name: Flight Price Tracker
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 21 * * *"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run tracker
+        run: |
+          python tracker.py > output.txt
+          cat output.txt
+
+      - name: Send email if ALERT found
+        if: contains(join(steps.*.outputs.* , ''), 'ALERT:')
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Flight Price Alert
+          to: ${{ secrets.ALERT_TO_EMAIL }}
+          from: Flight Tracker
+          body: A price drop was detected. Check GitHub Actions logs.
 
