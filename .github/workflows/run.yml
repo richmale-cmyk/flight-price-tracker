@@ -26,7 +26,7 @@ jobs:
       - name: Run tracker
         env:
           ROUTE: "SYD-DXB"
-          THRESHOLD_AUD: "1201"
+          THRESHOLD_AUD: "91201"
         run: |
           python tracker.py | tee output.txt
 
