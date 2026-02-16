@@ -37,7 +37,8 @@ def main():
     state.update({"route": ROUTE, "last_checked_utc": now, "last_price_aud": price})
     save_state(state)
 
-    print(f"[{now}] Route {ROUTE} price: AUD {price:.2f} (threshold {THRESHOLD_AUD:.2f})")
+    print(f"ALERT: {price} AUD | {route} | {booking_url}")
+
 
     # Simple “alert condition”
     if price <= THRESHOLD_AUD and (last_price is None or price < last_price):
