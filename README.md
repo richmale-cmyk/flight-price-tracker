@@ -1,2 +1,3 @@
-# flight-price-tracker
-Monitors SYD–DXB fares and alerts when prices drop
+# Flight Price Tracker
+
+Monitors SYD–DXB pricing and alerts on drops.
