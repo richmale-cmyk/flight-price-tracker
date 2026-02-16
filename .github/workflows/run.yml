@@ -1,30 +1,4 @@
- - name: Send email via Gmail
-        if: steps.detect_alert.outputs.alert == 'true'
-        env:
-          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          ALERT_TO_EMAIL: ${{ secrets.ALERT_TO_EMAIL }}
-        run: |
-          python - <<'EOF'
-          import smtplib
-          from email.mime.text import MIMEText
-          import os
-
-          user = os.environ["SMTP_USERNAME"]
-          password = os.environ["SMTP_PASSWORD"]
-          to_email = os.environ["ALERT_TO_EMAIL"]
-
-          msg = MIMEText("Flight price dropped below your threshold.\n\nCheck it now!")
-          msg["Subject"] = "✈️ Flight Price Alert"
-          msg["From"] = user
-          msg["To"] = to_email
-
-          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-              smtp.login(user, password)
-              smtp.send_message(msg)
-
-          print("Email sent")
-          EOFname: Flight Price Tracker
+name: Flight Price Tracker
 
 on:
   workflow_dispatch: {}
@@ -53,9 +27,6 @@ jobs:
         env:
           ROUTE: "SYD-DXB"
           THRESHOLD_AUD: "1201"
-          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          ALERT_TO_EMAIL: ${{ secrets.ALERT_TO_EMAIL }}
         run: |
           python tracker.py | tee output.txt
 
@@ -70,7 +41,35 @@ jobs:
             echo "No alert"
           fi
 
-      - name: Notification placeholder
+      - name: Send email via Gmail
+        if: steps.detect_alert.outputs.alert == 'true'
+        env:
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ALERT_TO_EMAIL: ${{ secrets.ALERT_TO_EMAIL }}
+        run: |
+          python - <<'EOF'
+          import smtplib
+          from email.mime.text import MIMEText
+          import os
+
+          user = os.environ["SMTP_USERNAME"]
+          password = os.environ["SMTP_PASSWORD"]
+          to_email = os.environ["ALERT_TO_EMAIL"]
+
+          msg = MIMEText("Flight price dropped below your threshold.\n\nCheck it now!")
+          msg["Subject"] = "✈️ Flight Price Alert"
+          msg["From"] = user
+          msg["To"] = to_email
+
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+              smtp.login(user, password)
+              smtp.send_message(msg)
+
+          print("Email sent")
+          EOF
+
+      - name: Log alert line (debug)
         if: steps.detect_alert.outputs.alert == 'true'
         run: |
           echo "👉 Price drop detected — tracker printed ALERT:"
