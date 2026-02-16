@@ -26,7 +26,7 @@ jobs:
       - name: Run tracker
         env:
           ROUTE: "SYD-DXB"
-          THRESHOLD_AUD: "1201"
+          THRESHOLD_AUD: "1200"
         run: |
           python tracker.py | tee output.txt
 
@@ -39,23 +39,24 @@ jobs:
             echo "alert=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Send email via Gmail
+      - name: Send email via Gmail (only if alert)
         if: steps.detect_alert.outputs.alert == 'true'
         env:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           ALERT_TO_EMAIL: ${{ secrets.ALERT_TO_EMAIL }}
         run: |
-          python - <<'EOF'
+          python - <<'PY'
+          import os
           import smtplib
           from email.mime.text import MIMEText
-          import os
 
           user = os.environ["SMTP_USERNAME"]
           password = os.environ["SMTP_PASSWORD"]
           to_email = os.environ["ALERT_TO_EMAIL"]
 
-          msg = MIMEText("Flight price dropped below your threshold.\n\nCheck it now!")
+          body = "Flight price dropped below your threshold.\n\nCheck it now!"
+          msg = MIMEText(body)
           msg["Subject"] = "✈️ Flight Price Alert"
           msg["From"] = user
           msg["To"] = to_email
@@ -65,4 +66,4 @@ jobs:
               smtp.send_message(msg)
 
           print("Email sent")
-          EOF
+          PY
