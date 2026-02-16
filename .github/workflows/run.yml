@@ -36,8 +36,23 @@ jobs:
             echo "No alert"
           fi
 
-      - name: Notification placeholder
-        if: steps.detect_alert.outputs.alert == 'true'
-        run: |
-          echo "👉 Price drop detected — plug notification here"
+- name: Email alert
+  if: steps.detect_alert.outputs.alert == 'true'
+  uses: dawidd6/action-send-mail@v3
+  with:
+    server_address: smtp.gmail.com
+    server_port: 465
+    secure: true
+    username: ${{ secrets.SMTP_USERNAME }}
+    password: ${{ secrets.SMTP_PASSWORD }}
+    subject: "✈️ Flight Price Alert: ${{ env.ROUTE }}"
+    to: ${{ secrets.ALERT_TO_EMAIL }}
+    from: "Flight Price Tracker <${{ secrets.SMTP_USERNAME }}>"
+    body: |
+      ALERT detected for route: ${{ env.ROUTE }}
+      Threshold: ${{ env.THRESHOLD_AUD }} AUD
+
+      Workflow: ${{ github.workflow }}
+      Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
 
