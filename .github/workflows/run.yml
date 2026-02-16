@@ -1,4 +1,30 @@
-name: Flight Price Tracker
+ - name: Send email via Gmail
+        if: steps.detect_alert.outputs.alert == 'true'
+        env:
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ALERT_TO_EMAIL: ${{ secrets.ALERT_TO_EMAIL }}
+        run: |
+          python - <<'EOF'
+          import smtplib
+          from email.mime.text import MIMEText
+          import os
+
+          user = os.environ["SMTP_USERNAME"]
+          password = os.environ["SMTP_PASSWORD"]
+          to_email = os.environ["ALERT_TO_EMAIL"]
+
+          msg = MIMEText("Flight price dropped below your threshold.\n\nCheck it now!")
+          msg["Subject"] = "✈️ Flight Price Alert"
+          msg["From"] = user
+          msg["To"] = to_email
+
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+              smtp.login(user, password)
+              smtp.send_message(msg)
+
+          print("Email sent")
+          EOFname: Flight Price Tracker
 
 on:
   workflow_dispatch: {}
