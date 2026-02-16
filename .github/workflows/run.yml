@@ -26,7 +26,7 @@ jobs:
       - name: Run tracker
         env:
           ROUTE: "SYD-DXB"
-          THRESHOLD_AUD: "1200"
+          THRESHOLD_AUD: "1201"
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           ALERT_TO_EMAIL: ${{ secrets.ALERT_TO_EMAIL }}
